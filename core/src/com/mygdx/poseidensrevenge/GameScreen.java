@@ -114,9 +114,11 @@ public class GameScreen implements Screen {
 
     // get walls rect
     private void getTiles (int startX, int startY, int endX, int endY, Array<Rectangle> tiles) {
+        // get walls layer
         TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("walls");
         rectPool.freeAll(tiles);
         tiles.clear();
+        // add wall tile rectangles into tiles
         for (int y = startY; y <= endY; y++) {
             for (int x = startX; x <= endX; x++) {
                 TiledMapTileLayer.Cell cell = layer.getCell(x, y);

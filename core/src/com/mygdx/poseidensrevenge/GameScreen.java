@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -15,6 +16,7 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
+import com.badlogic.gdx.utils.ScreenUtils;
 
 public class GameScreen implements Screen {
     private Ball ball;
@@ -41,22 +43,41 @@ public class GameScreen implements Screen {
         ball.position.set(0,0);
 
         // set the WIDTH and HEIGHT of the ball and resize it for collision detection by 32(1 unit = 32 pixels)
-        Ball.WIDTH = 1 / 32f * ball.image.getWidth();
-        Ball.HEIGHT = 1 / 32f * ball.image.getHeight();
+        Ball.WIDTH = 50;
+        Ball.HEIGHT = 50;
 
         // load the map, set the unit scale to 1/32(1 unit = 32 pixels)
         map = new TmxMapLoader().load("test.tmx");
-        renderer = new OrthogonalTiledMapRenderer(map, 1 / 32f);
+        renderer = new OrthogonalTiledMapRenderer(map);
 
-        // create a camera, shows 100x100 units
+        // create a camera
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 100, 100);
+        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.update();
     }
 
     @Override
     public void render(float delta) {
+        // clear the screen
+        ScreenUtils.clear(0.7f, 0.7f, 1.0f, 1);
 
+        // update the ball
+        updateBall();
+
+        // let the camera follow the koala, x-axis only
+//        camera.position.x = ball.position.x;
+        camera.update();
+
+        // set the TiledMapRenderer view based on what the
+        // camera sees, and render the map
+        renderer.setView(camera);
+        renderer.render();
+
+        // render the ball
+        Batch batch = renderer.getBatch();
+        batch.begin();
+        batch.draw(ball.image, ball.position.x, ball.position.y, Ball.WIDTH, Ball.HEIGHT);
+        batch.end();
     }
 
     // update ball's movement
@@ -78,16 +99,10 @@ public class GameScreen implements Screen {
             ballRec.set(ball.position.x, ball.position.y, Ball.WIDTH, Ball.HEIGHT);
             // check ball's velocity on x and y axes
             int startX, startY, endX, endY;
-            if (ball.velocity.x > 0){
-                startX = endX = (int)(ball.position.x + Ball.WIDTH + ball.velocity.x);
-            }else {
-                startX = endX = (int)(ball.position.x + ball.velocity.x);
-            }
-            if (ball.velocity.y > 0){
-                startY = endY = (int)(ball.position.y + Ball.HEIGHT + ball.velocity.y);
-            }else {
-                startY = endY = (int)(ball.position.y + ball.velocity.y);
-            }
+            startX = (int)(ball.position.x + ball.velocity.x);
+            endX = (int)(ball.position.x + Ball.WIDTH + ball.velocity.x);
+            startY = (int)(ball.position.y + ball.velocity.y);
+            endY = (int)(ball.position.y + Ball.HEIGHT + ball.velocity.y);
             // get walls rect
             getTiles(startX, startY, endX, endY, tiles);
             // move ball's rect
@@ -97,34 +112,54 @@ public class GameScreen implements Screen {
             for (Rectangle tile : tiles) {
                 if (ballRec.overlaps(tile)) {
                     if (ballRec.x + ballRec.width > tile.x && ball.velocity.x > 0){
+                        System.out.println(tile.toString());
+                        ballRec.x -= ball.velocity.x;
                         ball.velocity.x = 0;
                     }else if(ballRec.x < tile.x + tile.width && ball.velocity.x < 0){
+                        System.out.println(tile.toString());
+                        ballRec.x -= ball.velocity.x;
                         ball.velocity.x = 0;
                     }
                     if (ballRec.y + ballRec.height > tile.y && ball.velocity.y > 0){
+                        System.out.println("y");
+                        ballRec.y -= ball.velocity.y;
                         ball.velocity.y = 0;
                     }else if(ballRec.y < tile.y + tile.height && ball.velocity.y < 0){
+                        System.out.println("y");
+                        ballRec.y -= ball.velocity.y;
                         ball.velocity.y = 0;
                     }
                 }
             }
-
+            rectPool.free(ballRec);
+            // move ball
+            ball.position.add(ball.velocity);
+            if (ball.position.x > Gdx.graphics.getWidth()- Ball.WIDTH){
+                ball.position.x = Gdx.graphics.getWidth()- Ball.WIDTH;
+            }else if (ball.position.x < 0){
+                ball.position.x = 0;
+            }
+            if (ball.position.y > Gdx.graphics.getHeight()- Ball.HEIGHT){
+                ball.position.y = Gdx.graphics.getHeight()- Ball.HEIGHT;
+            }else if (ball.position.y < 0){
+                ball.position.y = 0;
+            }
         }
     }
 
     // get walls rect
     private void getTiles (int startX, int startY, int endX, int endY, Array<Rectangle> tiles) {
         // get walls layer
-        TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("walls");
+        TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("Wall");
         rectPool.freeAll(tiles);
         tiles.clear();
         // add wall tile rectangles into tiles
-        for (int y = startY; y <= endY; y++) {
-            for (int x = startX; x <= endX; x++) {
+        for (int y = (startY/32); y <= (endY/32); y++) {
+            for (int x = (startX/32); x <= (endX/32); x++) {
                 TiledMapTileLayer.Cell cell = layer.getCell(x, y);
                 if (cell != null) {
                     Rectangle rect = rectPool.obtain();
-                    rect.set(x, y, 1, 1);
+                    rect.set(x*32, y*32, 32, 32);
                     tiles.add(rect);
                 }
             }

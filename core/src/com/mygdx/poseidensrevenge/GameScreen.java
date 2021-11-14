@@ -65,7 +65,6 @@ public class GameScreen implements Screen {
         updateBall();
 
         // let the camera follow the koala, x-axis only
-//        camera.position.x = ball.position.x;
         camera.update();
 
         // set the TiledMapRenderer view based on what the

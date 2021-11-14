@@ -112,20 +112,16 @@ public class GameScreen implements Screen {
             for (Rectangle tile : tiles) {
                 if (ballRec.overlaps(tile)) {
                     if (ballRec.x + ballRec.width > tile.x && ball.velocity.x > 0){
-                        System.out.println(tile.toString());
                         ballRec.x -= ball.velocity.x;
                         ball.velocity.x = 0;
                     }else if(ballRec.x < tile.x + tile.width && ball.velocity.x < 0){
-                        System.out.println(tile.toString());
                         ballRec.x -= ball.velocity.x;
                         ball.velocity.x = 0;
                     }
-                    if (ballRec.y + ballRec.height > tile.y && ball.velocity.y > 0){
-                        System.out.println("y");
+                    else if (ballRec.y + ballRec.height > tile.y && ball.velocity.y > 0){
                         ballRec.y -= ball.velocity.y;
                         ball.velocity.y = 0;
                     }else if(ballRec.y < tile.y + tile.height && ball.velocity.y < 0){
-                        System.out.println("y");
                         ballRec.y -= ball.velocity.y;
                         ball.velocity.y = 0;
                     }
@@ -188,6 +184,8 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
+        map.dispose();
+        renderer.dispose();
 
     }
 }

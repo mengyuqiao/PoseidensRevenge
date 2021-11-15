@@ -64,14 +64,11 @@ public class GameScreen implements Screen {
         // load end tiles
         TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("End");
         // add end tile rectangles into tiles
-        for (int y = 0; y <= 1; y++) {
-            for (int x = 0; x <= 1; x++) {
-                TiledMapTileLayer.Cell cell = layer.getCell(x, y);
-                if (cell != null) {
-                    Rectangle rect = rectPool.obtain();
-                    rect.set(x*32, y*32, 32, 32);
-                    endTiles.add(rect);
-                }
+        for (int y = 22; y <= 23; y++) {
+            for (int x = 11; x <= 12; x++) {
+                Rectangle rect = rectPool.obtain();
+                rect.set(x*32, y*32, 32, 32);
+                endTiles.add(rect);
             }
         }
         System.out.println(endTiles.size);
@@ -173,7 +170,8 @@ public class GameScreen implements Screen {
     private void checkEnd(Rectangle ballRec) {
         for (Rectangle tile : endTiles) {
             if (ballRec.overlaps(tile)) {
-                game.setScreen(new MenuScreen(game));
+                System.out.println("touch");
+                game.setScreen(new SucceedScreen(game));
             }
         }
     }

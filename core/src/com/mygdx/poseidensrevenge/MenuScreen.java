@@ -1,8 +1,11 @@
 package com.mygdx.poseidensrevenge;
 
+import com.badlogic.gdx.Audio;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -20,6 +23,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MenuScreen implements Screen {
+    private Game game;
     private SpriteBatch batch;
     protected Stage stage;
     private Viewport viewport;
@@ -27,11 +31,17 @@ public class MenuScreen implements Screen {
     private TextureAtlas atlas;
     protected Skin skin;
     private Texture background;
+    private Music bgm;
 
-    public MenuScreen(){
+    public MenuScreen(Game game){
+        this.game = game;
         atlas = new TextureAtlas("uiskin.atlas");
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
         background = new Texture("background.jpg");
+        FileHandle bgmHandle = Gdx.files.internal("bgm.wav");
+        bgm = Gdx.audio.newMusic(bgmHandle);
+        bgm.setLooping(true);
+        bgm.play();
 
         batch = new SpriteBatch();
         camera = new OrthographicCamera();
@@ -59,7 +69,6 @@ public class MenuScreen implements Screen {
 
         //Create buttons
         TextButton playButton = new TextButton("Play", skin);
-        TextButton optionsButton = new TextButton("Options", skin);
         TextButton exitButton = new TextButton("Exit", skin);
         Label nameLabel = new Label("Poseidon's Revenge", skin);
 
@@ -72,16 +81,17 @@ public class MenuScreen implements Screen {
 
         nameLabel.setFontScale(3, 3);
         playButton.getLabel().setFontScale(3, 3);
-        optionsButton.getLabel().setFontScale(3, 3);
         exitButton.getLabel().setFontScale(3, 3);
 
         //Add listeners to buttons
         playButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ((Game)Gdx.app.getApplicationListener()).setScreen(new IntroduceScreen());
+//                ((Game)Gdx.app.getApplicationListener()).setScreen(new IntroduceScreen());
+                game.setScreen(new IntroduceScreen(game));
             }
         });
+
         exitButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -92,7 +102,6 @@ public class MenuScreen implements Screen {
         //Add buttons to table
         mainTable.add(nameLabel).size(width, unit).padBottom(20).row();
         mainTable.add(playButton).size(width, unit).padBottom(20).row();
-        mainTable.add(optionsButton).size(width, unit).padBottom(20).row();
         mainTable.add(exitButton).size(width, unit).padBottom(20).row();
 
         //Add table to stage
@@ -136,6 +145,9 @@ public class MenuScreen implements Screen {
 
     @Override
     public void dispose() {
-
+        bgm.dispose();
+        stage.dispose();
+        batch.dispose();
+        background.dispose();
     }
 }

@@ -27,8 +27,10 @@ public class IntroduceScreen implements Screen {
     private Label text;
     private int count;
     private Table mainTable;
+    private Game game;
 
-    public IntroduceScreen(){
+    public IntroduceScreen(Game game){
+        this.game = game;
         atlas = new TextureAtlas("uiskin.atlas");
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
         text = new Label("Poseidon, as the god of the sea, has immense wealth.", skin);
@@ -89,7 +91,8 @@ public class IntroduceScreen implements Screen {
             comfirmButton.addListener(new ClickListener(){
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
-                    ((Game)Gdx.app.getApplicationListener()).setScreen(new GameScreen());
+//                ((Game)Gdx.app.getApplicationListener()).setScreen(new GameScreen());
+                    game.setScreen(new GameScreen(game));
                 }
             });
             mainTable.add(comfirmButton).size(200,200).padTop(200).row();

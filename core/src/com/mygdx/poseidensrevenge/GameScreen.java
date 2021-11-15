@@ -1,5 +1,6 @@
 package com.mygdx.poseidensrevenge;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -31,24 +32,49 @@ public class GameScreen implements Screen {
         }
     };
     private Array<Rectangle> tiles = new Array<Rectangle>();
+    private Array<Rectangle> endTiles = new Array<Rectangle>();
+    private Texture end;
+    private Game game;
+
+    public GameScreen(Game game){
+        this.game = game;
+    }
 
     @Override
     public void show() {
         // check if the platform has accelerometer
         accelerometerAvail = Gdx.input.isPeripheralAvailable(Input.Peripheral.Accelerometer);
 
+        // load the endpoint
+        end = new Texture("end.png");
+
         // create ball
         ball = new Ball();
         ball.image = new Texture("Ball.png");
         ball.position.set(0,0);
 
-        // set the WIDTH and HEIGHT of the ball and resize it for collision detection by 32(1 unit = 32 pixels)
+        // set the WIDTH and HEIGHT of the ball
         Ball.WIDTH = 50;
         Ball.HEIGHT = 50;
 
-        // load the map, set the unit scale to 1/32(1 unit = 32 pixels)
+        // load the map
         map = new TmxMapLoader().load("test.tmx");
         renderer = new OrthogonalTiledMapRenderer(map);
+
+        // load end tiles
+        TiledMapTileLayer layer = (TiledMapTileLayer)map.getLayers().get("End");
+        // add end tile rectangles into tiles
+        for (int y = 0; y <= 1; y++) {
+            for (int x = 0; x <= 1; x++) {
+                TiledMapTileLayer.Cell cell = layer.getCell(x, y);
+                if (cell != null) {
+                    Rectangle rect = rectPool.obtain();
+                    rect.set(x*32, y*32, 32, 32);
+                    endTiles.add(rect);
+                }
+            }
+        }
+        System.out.println(endTiles.size);
 
         // create a camera
         camera = new OrthographicCamera();
@@ -107,6 +133,8 @@ public class GameScreen implements Screen {
             // move ball's rect
             ballRec.x += ball.velocity.x;
             ballRec.y += ball.velocity.y;
+            // check end
+            checkEnd(ballRec);
             // check collision
             for (Rectangle tile : tiles) {
                 if (ballRec.overlaps(tile)) {
@@ -138,6 +166,14 @@ public class GameScreen implements Screen {
                 ball.position.y = Gdx.graphics.getHeight()- Ball.HEIGHT;
             }else if (ball.position.y < 0){
                 ball.position.y = 0;
+            }
+        }
+    }
+
+    private void checkEnd(Rectangle ballRec) {
+        for (Rectangle tile : endTiles) {
+            if (ballRec.overlaps(tile)) {
+                game.setScreen(new MenuScreen(game));
             }
         }
     }
@@ -185,6 +221,5 @@ public class GameScreen implements Screen {
     public void dispose() {
         map.dispose();
         renderer.dispose();
-
     }
 }
